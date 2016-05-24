@@ -1,20 +1,39 @@
 package net.gravityfox.apcsa.sphero.apcsasphero.apcsasphero;
 
 import android.content.Intent;
+import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorEvent;
+import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity {
-    public final static String EXTRA_MESSAGE = "net.gravityfox.apcsa.sphero.apcsasphero.apcsasphero.MESSAGE";
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
+    private TextView xText, yText, zText;
+    private Sensor mySensor;
+    private SensorManager SM;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Create our sensor manager
+        SM = (SensorManager)getSystemService(SENSOR_SERVICE);
+
+        //Accelerometer sensor
+        mySensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        //Register sensor
+        SM.registerListener((SensorEventListener) this, mySensor, SensorManager.SENSOR_DELAY_GAME);
+
+        xText = (TextView)findViewById(R.id.xText);
     }
 
     @Override
@@ -39,14 +58,13 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void sendMessage(View view) {
-        Intent intent = new Intent(this, DisplayMessageActivity.class);
-        setContentView(R.layout.activity_main);
-        EditText editText = (EditText) findViewById(R.id.edit_message);
-        if (editText != null) {
-            String message = editText.getText().toString();
-            intent.putExtra(EXTRA_MESSAGE, message);
-            startActivity(intent);
-        } else System.out.println("Error!");
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 }
