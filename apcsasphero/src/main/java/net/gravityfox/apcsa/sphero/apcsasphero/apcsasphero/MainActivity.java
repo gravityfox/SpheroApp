@@ -1,6 +1,7 @@
 package net.gravityfox.apcsa.sphero.apcsasphero.apcsasphero;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,6 +25,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
         //Create our sensor manager
         SM = (SensorManager)getSystemService(SENSOR_SERVICE);
 
@@ -34,6 +37,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         SM.registerListener((SensorEventListener) this, mySensor, SensorManager.SENSOR_DELAY_GAME);
 
         xText = (TextView)findViewById(R.id.xText);
+        yText = (TextView)findViewById(R.id.yText);
+        zText = (TextView)findViewById(R.id.zText);
     }
 
     @Override
@@ -60,11 +65,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-
+        xText.setText("X: " + event.values[0]);
+        yText.setText("Y: " + event.values[1]);
+        zText.setText("Z: " + event.values[2]);
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
+        //not in use
     }
 }
