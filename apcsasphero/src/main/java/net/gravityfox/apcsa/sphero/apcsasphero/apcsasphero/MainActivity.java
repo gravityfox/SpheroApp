@@ -25,13 +25,13 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private Sensor sensor;
     private DiscoveryAgent discoveryAgent;
     private ConvenienceRobot robot;
-    private GraphicsView graphicsView;
+    private GraphicsView gv;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        graphicsView = new GraphicsView(this);
-        setContentView(graphicsView);
+        gv = new GraphicsView(this);
+        setContentView(gv);
         SM = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         SM.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
@@ -47,7 +47,11 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
     }
 
+
     private class GraphicsView extends View {
+
+        private int radius = 70;
+        private float vals1;
 
         private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         float x = getWidth()/2;
@@ -61,27 +65,28 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         protected void onDraw(Canvas canvas) {
             // TODO Auto-generated method stub
             super.onDraw(canvas);
-            int radius = 70;
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(Color.WHITE);
             canvas.drawPaint(paint);
             // Use Color.parseColor to define HTML colors
             paint.setColor(Color.parseColor("#CD5C5C"));
-            canvas.drawCircle(x, y, radius, paint);
-        }
 
+            canvas.drawCircle(((-1*x)/2), ((-1*y)/2), radius, paint);
+            canvas.drawText(vals1 + "",getWidth()/2, getHeight()/2, paint);
+        }
 
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        //lastx = x;
-        //lasty = y;
-        //x = event.values[0];
-        //y = event.values[1];
-        graphicsView.x--;
-        graphicsView.y--;
-        graphicsView.postInvalidate();
+        gv.x = event.values[0];
+        gv.y = event.values[1];
+        if (gv.x > gv.getWidth() - gv.radius || gv.x < gv.radius)
+            gv.x = gv.lastx;
+        if (gv.y > gv.getHeight() - gv.radius || gv.y < gv.radius)
+            gv.y = gv.lasty;
+        gv.vals1 = event.values[0];
+        gv.postInvalidate();
     }
 
     @Override
