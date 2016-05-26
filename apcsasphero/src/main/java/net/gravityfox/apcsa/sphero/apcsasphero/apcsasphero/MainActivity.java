@@ -2,6 +2,7 @@ package net.gravityfox.apcsa.sphero.apcsasphero.apcsasphero;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -32,6 +33,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         gv = new GraphicsView(this);
         setContentView(gv);
         SM = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -52,15 +54,22 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
     private class GraphicsView extends View {
 
-        private float centerX = getWidth() / 2;
-        private float centerY = getHeight() / 2;
+        private float centerX = 0;
+        private float centerY = 0;
         private int radius = 70;
         private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        float x = getWidth() / 2;
-        float y = getHeight() / 2;
+        float x = 0;
+        float y = 0;
 
         public GraphicsView(Context context) {
             super(context);
+        }
+
+        @Override
+        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            super.onSizeChanged(w, h, oldw, oldh);
+            centerX = w/2;
+            centerY = h/2;
         }
 
         @Override
@@ -73,18 +82,18 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             // Use Color.parseColor to define HTML colors
             paint.setColor(RED);
 
-            canvas.drawCircle(centerX + (x * 30), centerY + (y * 30), radius, paint);
+            canvas.drawCircle(centerX + (x * 50), centerY + (y * 50), radius, paint);
         }
 
     }
     @Override
     public void onSensorChanged(SensorEvent event) {
-        gv.x = event.values[0];
-        gv.y = event.values[1];
-        while (gv.x > gv.getWidth() - 70)
-            gv.x = gv.x - 2;
-        while (gv.y > gv.getHeight() - 70)
-            gv.y = gv.y - 2;
+        gv.x = event.values[1];
+        gv.y = event.values[0];
+//        while (gv.x > gv.getWidth() - 70)
+//            gv.x = gv.x - 2;
+//        while (gv.y > gv.getHeight() - 70)
+//            gv.y = gv.y - 2;
         gv.postInvalidate();
     }
 
