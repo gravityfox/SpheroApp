@@ -11,29 +11,50 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.View;
+import com.orbotix.ConvenienceRobot;
+import com.orbotix.common.DiscoveryAgent;
+import com.orbotix.common.DiscoveryAgentEventListener;
+import com.orbotix.common.Robot;
+import com.orbotix.common.RobotChangedStateListener;
 
-public class MainActivity extends Activity {
+import java.util.List;
+
+public class MainActivity extends Activity implements SensorEventListener, DiscoveryAgentEventListener, RobotChangedStateListener{
+
+    private SensorManager SM;
+    private Sensor sensor;
+    private DiscoveryAgent discoveryAgent;
+    private ConvenienceRobot robot;
+    private GraphicsView graphicsView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(new MyView(this));
+        graphicsView = new GraphicsView(this);
+        setContentView(graphicsView);
+        SM = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        SM.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
     }
 
-    public class MyView extends View implements SensorEventListener{
+    @Override
+    public void handleRobotsAvailable(List<Robot> list) {
+        
+    }
 
-        private SensorManager SM;
-        private Sensor sensor;
-        private float x = getWidth()/2;
-        private float y = getHeight()/2;
-        private float lastx = 0;
-        private float lasty = 0;
+    @Override
+    public void handleRobotChangedState(Robot robot, RobotChangedStateNotificationType robotChangedStateNotificationType) {
 
-        public MyView(Context context) {
+    }
+
+    private class GraphicsView extends View {
+
+        private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        float x = getWidth()/2;
+        float y = getHeight()/2;
+
+        public GraphicsView(Context context) {
             super(context);
-            SM = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-            sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-            SM.registerListener(this, sensor , SensorManager.SENSOR_DELAY_GAME);
         }
 
         @Override
@@ -41,29 +62,31 @@ public class MainActivity extends Activity {
             // TODO Auto-generated method stub
             super.onDraw(canvas);
             int radius = 70;
-            Paint paint = new Paint();
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(Color.WHITE);
             canvas.drawPaint(paint);
             // Use Color.parseColor to define HTML colors
             paint.setColor(Color.parseColor("#CD5C5C"));
-            canvas.drawCircle(lastx + ((-1*x)/2), lasty + ((-1*y)/2), radius, paint);
+            canvas.drawCircle(x, y, radius, paint);
         }
 
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            //lastx = x;
-            //lasty = y;
-            //x = event.values[0];
-            //y = event.values[1];
-            x--;
-            y--;
-            postInvalidate();
-        }
 
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-            //not used
-        }
     }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        //lastx = x;
+        //lasty = y;
+        //x = event.values[0];
+        //y = event.values[1];
+        graphicsView.x--;
+        graphicsView.y--;
+        graphicsView.postInvalidate();
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        //not used
+    }
+
 }
