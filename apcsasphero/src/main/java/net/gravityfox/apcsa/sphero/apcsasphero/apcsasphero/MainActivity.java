@@ -28,6 +28,8 @@ public class MainActivity extends Activity {
         private float y = getHeight()/2;
         private float lastx = 0;
         private float lasty = 0;
+        private int radius = 70;
+        private float vals1;
 
         public MyView(Context context) {
             super(context);
@@ -40,7 +42,6 @@ public class MainActivity extends Activity {
         protected void onDraw(Canvas canvas) {
             // TODO Auto-generated method stub
             super.onDraw(canvas);
-            int radius = 70;
             Paint paint = new Paint();
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(Color.WHITE);
@@ -48,16 +49,20 @@ public class MainActivity extends Activity {
             // Use Color.parseColor to define HTML colors
             paint.setColor(Color.parseColor("#CD5C5C"));
             canvas.drawCircle(lastx + ((-1*x)/2), lasty + ((-1*y)/2), radius, paint);
+            canvas.drawText(vals1 + "",getWidth()/2, getHeight()/2, paint);
         }
 
         @Override
         public void onSensorChanged(SensorEvent event) {
-            //lastx = x;
-            //lasty = y;
-            //x = event.values[0];
-            //y = event.values[1];
-            x--;
-            y--;
+            lastx = x;
+            lasty = y;
+            x = event.values[0];
+            y = event.values[1];
+            if(x>getWidth()-radius || x<radius)
+                x = lastx;
+            if(y>getHeight()-radius || y<radius)
+                y = lasty;
+            vals1 = event.values[0];
             postInvalidate();
         }
 
