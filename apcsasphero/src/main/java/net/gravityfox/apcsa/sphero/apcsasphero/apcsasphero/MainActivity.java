@@ -21,6 +21,8 @@ import java.util.List;
 
 public class MainActivity extends Activity implements SensorEventListener, DiscoveryAgentEventListener, RobotChangedStateListener{
 
+    static final int RED = Color.parseColor("#CD5C5C");
+
     private SensorManager SM;
     private Sensor sensor;
     private DiscoveryAgent discoveryAgent;
@@ -50,12 +52,12 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
     private class GraphicsView extends View {
 
+        private float centerX = getWidth() / 2;
+        private float centerY = getHeight() / 2;
         private int radius = 70;
-        private float vals1;
-
         private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        float x = getWidth()/2;
-        float y = getHeight()/2;
+        float x = getWidth() / 2;
+        float y = getHeight() / 2;
 
         public GraphicsView(Context context) {
             super(context);
@@ -69,23 +71,20 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             paint.setColor(Color.WHITE);
             canvas.drawPaint(paint);
             // Use Color.parseColor to define HTML colors
-            paint.setColor(Color.parseColor("#CD5C5C"));
+            paint.setColor(RED);
 
-            canvas.drawCircle(((-1*x)/2), ((-1*y)/2), radius, paint);
-            canvas.drawText(vals1 + "",getWidth()/2, getHeight()/2, paint);
+            canvas.drawCircle(centerX + (x * 30), centerY + (y * 30), radius, paint);
         }
 
     }
-
     @Override
     public void onSensorChanged(SensorEvent event) {
         gv.x = event.values[0];
         gv.y = event.values[1];
-        if (gv.x > gv.getWidth() - gv.radius || gv.x < gv.radius)
-            gv.x = gv.lastx;
-        if (gv.y > gv.getHeight() - gv.radius || gv.y < gv.radius)
-            gv.y = gv.lasty;
-        gv.vals1 = event.values[0];
+        while (gv.x > gv.getWidth() - 70)
+            gv.x = gv.x - 2;
+        while (gv.y > gv.getHeight() - 70)
+            gv.y = gv.y - 2;
         gv.postInvalidate();
     }
 
