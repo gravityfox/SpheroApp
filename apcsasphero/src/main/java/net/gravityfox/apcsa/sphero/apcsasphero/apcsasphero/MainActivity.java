@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -14,9 +13,6 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
-
 import com.orbotix.ConvenienceRobot;
 import com.orbotix.Ollie;
 import com.orbotix.common.*;
@@ -29,6 +25,7 @@ import static android.R.attr.type;
 
 public class MainActivity extends Activity implements SensorEventListener, DiscoveryAgentEventListener, RobotChangedStateListener {
 
+    static final String TAG = "APCSASphero";
     static final int RED = Color.parseColor("#CD5C5C");
 
     private SensorManager SM;
@@ -37,6 +34,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private ConvenienceRobot robot;
     private GraphicsView gv;
     private boolean robotActive = false;
+    private float stableX = 0, stableY = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,12 +46,14 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         SM.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
         discoveryAgent = DiscoveryAgentLE.getInstance();
+        Log.i(TAG, "Started.");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         startDiscovery();
+        Log.i(TAG, "Resuming.");
     }
 
     @Override
@@ -70,11 +70,12 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
     @Override
     public void handleRobotsAvailable(List<Robot> list) {
-
+        Log.v("APCSASphero", list.toString());
     }
 
     @Override
     public void handleRobotChangedState(Robot robot, RobotChangedStateNotificationType robotChangedStateNotificationType) {
+        Log.v(TAG, "Robot Changed State: " + robot.toString());
         switch (robotChangedStateNotificationType) {
             case Online:
                 stopDiscovery();
@@ -82,9 +83,11 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
                     this.robot = new Ollie(robot);
                 }
                 this.robot.setLed(0f, 1f, 0f);
+                this.robotActive = true;
 
                 break;
             case Disconnected:
+                this.robotActive = false;
 //                startDiscovery();
                 break;
             default:
@@ -109,18 +112,16 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         @Override
         protected void onSizeChanged(int w, int h, int oldw, int oldh) {
             super.onSizeChanged(w, h, oldw, oldh);
-            centerX = w/2;
-            centerY = h/2;
+            centerX = w / 2;
+            centerY = h / 2;
         }
 
         @Override
         protected void onDraw(Canvas canvas) {
-            // TODO Auto-generated method stub
             super.onDraw(canvas);
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(Color.WHITE);
             canvas.drawPaint(paint);
-            // Use Color.parseColor to define HTML colors
             paint.setColor(RED);
 
             canvas.drawCircle(centerX + (x * 50), centerY + (y * 50), radius, paint);
@@ -130,13 +131,17 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        double x = event.values[1], y = event.values[0];
-        gv.x = event.values[1];
-        gv.y = event.values[0];
+        float x = event.values[1], y = event.values[0];
+        stableX = stableX * 0.8f + x * 0.2f;
+        stableY = stableY * 0.8f + y * 0.2f;
+        gv.x = stableX;
+        gv.y = stableY;
         gv.postInvalidate();
-        float heading = (float) Math.atan2(x, y);
-        float velocity = (float) Math.sqrt(x * x + y * y);
-        this.robot.drive(heading, velocity);
+        if (robotActive) {
+            float heading = (float) Math.atan2(x, y);
+            float velocity = (float) Math.sqrt(x * x + y * y);
+            //this.robot.drive(heading, velocity);
+        }
     }
 
     @Override
