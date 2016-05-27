@@ -90,10 +90,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     public void onSensorChanged(SensorEvent event) {
         gv.x = event.values[1];
         gv.y = event.values[0];
-//        while (gv.x > gv.getWidth() - 70)
-//            gv.x = gv.x - 2;
-//        while (gv.y > gv.getHeight() - 70)
-//            gv.y = gv.y - 2;
         gv.postInvalidate();
     }
 
