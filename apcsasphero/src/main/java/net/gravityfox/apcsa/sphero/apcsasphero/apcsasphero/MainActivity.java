@@ -3,6 +3,8 @@ package net.gravityfox.apcsa.sphero.apcsasphero.apcsasphero;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
@@ -13,6 +15,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -94,16 +97,22 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
 
     private class GraphicsView extends View {
-
+        private String TAG = "Random Stuff";
+        float initialX, initialY;
         private float centerX = 0;
         private float centerY = 0;
         private int radius = 70;
         private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         float x = 0;
         float y = 0;
+        Bitmap button;
+        Bitmap ball;
+        Bitmap wood;
 
         public GraphicsView(Context context) {
             super(context);
+            button = BitmapFactory.decodeResource(getResources(), R.drawable.button);
+            ball = Bitmap.createScaledBitmap(ball, 70, 70, true);
         }
 
         @Override
@@ -123,7 +132,63 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             // Use Color.parseColor to define HTML colors
             paint.setColor(RED);
 
-            canvas.drawCircle(centerX + (x * 50), centerY + (y * 50), radius, paint);
+            //canvas.drawCircle(centerX + (x * 50), centerY + (y * 50), radius, paint);
+            canvas.drawBitmap(ball,centerX + (x * 50), centerY + (y * 50),paint);
+            canvas.drawBitmap(button,50,50,paint);
+        }
+
+        public boolean onTouchEvent(MotionEvent event) {
+            //mGestureDetector.onTouchEvent(event);
+
+            int action = event.getActionMasked();
+
+            switch (action) {
+
+                case MotionEvent.ACTION_DOWN:
+                    initialX = event.getX();
+                    initialY = event.getY();
+
+                    Log.d(TAG, "Action was DOWN");
+                    break;
+
+                case MotionEvent.ACTION_MOVE:
+                    Log.d(TAG, "Action was MOVE");
+                    break;
+
+                case MotionEvent.ACTION_UP:
+                    float finalX = event.getX();
+                    float finalY = event.getY();
+
+                    Log.d(TAG, "Action was UP");
+
+                    if (initialX < finalX) {
+                        Log.d(TAG, "Left to Right swipe performed");
+                    }
+
+                    if (initialX > finalX) {
+                        Log.d(TAG, "Right to Left swipe performed");
+                    }
+
+                    if (initialY < finalY) {
+                        Log.d(TAG, "Up to Down swipe performed");
+                    }
+
+                    if (initialY > finalY) {
+                        Log.d(TAG, "Down to Up swipe performed");
+                    }
+
+                    break;
+
+                case MotionEvent.ACTION_CANCEL:
+                    Log.d(TAG,"Action was CANCEL");
+                    break;
+
+                case MotionEvent.ACTION_OUTSIDE:
+                    Log.d(TAG, "Movement occurred outside bounds of current screen element");
+                    break;
+            }
+
+            return super.onTouchEvent(event);
         }
 
     }
