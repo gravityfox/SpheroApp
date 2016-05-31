@@ -20,6 +20,8 @@ import com.orbotix.le.RobotLE;
 
 import java.util.List;
 
+import static android.R.attr.layout_height;
+import static android.R.attr.layout_width;
 import static android.R.attr.type;
 
 public class MainActivity extends Activity implements SensorEventListener, DiscoveryAgentEventListener, RobotChangedStateListener {
@@ -106,14 +108,15 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         float x = 0;
         float y = 0;
-        Bitmap button;
+        Bitmap btn_Left;
+        Bitmap btn_Right;
         Bitmap ball;
-        Bitmap wood;
 
         public GraphicsView(Context context) {
             super(context);
-            button = BitmapFactory.decodeResource(getResources(), R.drawable.button);
-            ball = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ball), 70, 70, true);
+            btn_Left = BitmapFactory.decodeResource(getResources(), R.drawable.btn_Left);
+            btn_Right = BitmapFactory.decodeResource(getResources(), R.drawable.btn_Right);
+            ball = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ball), radius, radius, true);
         }
 
         @Override
@@ -133,7 +136,10 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
             //canvas.drawCircle(centerX + (x * 50), centerY + (y * 50), radius, paint);
             canvas.drawBitmap(ball, centerX + (x * 50), centerY + (y * 50), paint);
-            canvas.drawBitmap(button, 50, 50, paint);
+            canvas.drawBitmap(btn_Left, radius, layout_height/2, paint);
+            canvas.drawBitmap(btn_Right, layout_width - radius, layout_height/2, paint);
+            
+            
         }
 
         public boolean onTouchEvent(MotionEvent event) {
