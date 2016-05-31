@@ -15,10 +15,8 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.Display;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-
 import com.orbotix.ConvenienceRobot;
 import com.orbotix.Ollie;
 import com.orbotix.common.*;
@@ -40,6 +38,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private ConvenienceRobot robot;
     private GraphicsView gv;
     private boolean robotActive = false;
+    private boolean bluetoothAvailable = false;
     private float stableX = 0, stableY = 0;
 
 
@@ -65,12 +64,12 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         if (bluetoothAdapter == null) {
         } else {
             if (bluetoothAdapter.isEnabled()) {
+                bluetoothAvailable = true;
                 if (checkCallingOrSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
             } else {
             }
         }
-
     }
 
 
@@ -79,7 +78,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         Log.i(TAG, "Resuming");
         super.onResume();
         discoveryAgent.addRobotStateListener(this);
-        startDiscovery();
     }
 
     @Override
@@ -99,18 +97,17 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            startDiscovery();
+            if (bluetoothAvailable)
+                startDiscovery();
         }
     }
 
     @Override
     public void handleRobotsAvailable(List<Robot> list) {
-        Log.i(TAG, list.toString());
     }
 
     @Override
     public void handleRobotChangedState(Robot robot, RobotChangedStateNotificationType robotChangedStateNotificationType) {
-        Log.i(TAG, "Robot Changed State: " + robotChangedStateNotificationType);
         switch (robotChangedStateNotificationType) {
             case Online:
                 stopDiscovery();
@@ -220,10 +217,10 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             canvas.drawPaint(paint);
 
             canvas.drawBitmap(ball, centerX + (x * 50), centerY + (y * 50), paint);
-            canvas.drawBitmap(btn_Left, radius+20, screenHeight/2, paint);
-            canvas.drawBitmap(btn_Right, screenWidth - radius-20, screenHeight/2, paint);
-            
-            
+            canvas.drawBitmap(btn_Left, radius + 20, screenHeight / 2, paint);
+            canvas.drawBitmap(btn_Right, screenWidth - radius - 20, screenHeight / 2, paint);
+
+
         }
 
 /*        public boolean onTouchEvent(MotionEvent event) {
