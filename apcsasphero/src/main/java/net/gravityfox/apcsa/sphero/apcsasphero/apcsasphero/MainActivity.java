@@ -2,6 +2,7 @@ package net.gravityfox.apcsa.sphero.apcsasphero.apcsasphero;
 
 import android.Manifest;
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -60,8 +61,16 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         Log.i(TAG, "Starting");
         super.onStart();
         discoveryAgent = DiscoveryAgentLE.getInstance();
-        if (checkCallingOrSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
+        } else {
+            if (bluetoothAdapter.isEnabled()) {
+                if (checkCallingOrSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
+            } else {
+            }
+        }
+
     }
 
 
@@ -211,8 +220,8 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             canvas.drawPaint(paint);
 
             canvas.drawBitmap(ball, centerX + (x * 50), centerY + (y * 50), paint);
-            canvas.drawBitmap(btn_Left, radius, y/2, paint);
-            canvas.drawBitmap(btn_Right, x - radius, y/2, paint);
+            canvas.drawBitmap(btn_Left, radius+20, screenHeight/2, paint);
+            canvas.drawBitmap(btn_Right, screenWidth - radius-20, screenHeight/2, paint);
             
             
         }
