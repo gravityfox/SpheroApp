@@ -45,15 +45,16 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         SM.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
         discoveryAgent = DiscoveryAgentLE.getInstance();
-        discoveryAgent.addRobotStateListener(this);
+
         Log.i(TAG, "Started.");
     }
 
     @Override
     protected void onResume() {
-        super.onResume();
-        startDiscovery();
         Log.i(TAG, "Resuming.");
+        super.onResume();
+        discoveryAgent.addRobotStateListener(this);
+        startDiscovery();
     }
 
     @Override
@@ -212,6 +213,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     }
 
     private void startDiscovery() {
+        Log.i(TAG, "Starting discovery...");
         try {
             discoveryAgent.addDiscoveryListener(this);
             discoveryAgent.startDiscovery(this);
