@@ -1,14 +1,17 @@
 package net.gravityfox.apcsa.sphero.apcsasphero.apcsasphero;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.graphics.*;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -37,6 +40,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "Creating");
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         gv = new GraphicsView(this);
@@ -44,14 +48,22 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         SM = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         SM.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
-        discoveryAgent = DiscoveryAgentLE.getInstance();
 
-        Log.i(TAG, "Started.");
     }
 
     @Override
+    protected void onStart() {
+        Log.i(TAG, "Starting");
+        super.onStart();
+        discoveryAgent = DiscoveryAgentLE.getInstance();
+        if (checkCallingOrSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
+    }
+
+
+    @Override
     protected void onResume() {
-        Log.i(TAG, "Resuming.");
+        Log.i(TAG, "Resuming");
         super.onResume();
         discoveryAgent.addRobotStateListener(this);
         startDiscovery();
@@ -59,6 +71,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
     @Override
     protected void onPause() {
+        Log.i(TAG, "Pausing");
         super.onPause();
         if (discoveryAgent != null) {
             discoveryAgent.removeRobotStateListener(this);
@@ -70,13 +83,21 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startDiscovery();
+        }
+    }
+
+    @Override
     public void handleRobotsAvailable(List<Robot> list) {
-        Log.v("APCSASphero", list.toString());
+        Log.i(TAG, list.toString());
     }
 
     @Override
     public void handleRobotChangedState(Robot robot, RobotChangedStateNotificationType robotChangedStateNotificationType) {
-        Log.v(TAG, "Robot Changed State: " + robotChangedStateNotificationType);
+        Log.i(TAG, "Robot Changed State: " + robotChangedStateNotificationType);
         switch (robotChangedStateNotificationType) {
             case Online:
                 stopDiscovery();
@@ -92,10 +113,54 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 //                startDiscovery();
                 break;
             default:
-                Log.v("APCSASphero", "Not handling state change notification: " + type);
+                Log.v(TAG, "Not handling state change notification: " + type);
         }
     }
 
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        float x = event.values[1], y = event.values[0];
+        stableX = stableX * 0.8f + x * 0.2f;
+        stableY = stableY * 0.8f + y * 0.2f;
+        gv.x = stableX;
+        gv.y = stableY;
+        gv.postInvalidate();
+        if (robotActive) {
+            float heading = (float) (Math.atan2(stableX, -stableY));
+            if (heading < 0.0) {
+                heading += 2.0 * Math.PI;
+            }
+            heading *= (180.0 / Math.PI);
+            float velocity = (float) (Math.sqrt(stableX * stableX + stableY * stableY) * 0.05);
+            if (velocity > 1) velocity = 1;
+            this.robot.drive(heading, velocity);
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        //not used
+    }
+
+    private void startDiscovery() {
+        Log.i(TAG, "Starting discovery...");
+        try {
+            discoveryAgent.addRobotStateListener(this);
+            discoveryAgent.addDiscoveryListener(this);
+            discoveryAgent.startDiscovery(this);
+            Log.i(TAG, "Started discovery!");
+        } catch (DiscoveryException e) {
+            Log.e(TAG, "Could not start discovery. Reason: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void stopDiscovery() {
+        Log.i(TAG, "Stopping discovery...");
+        discoveryAgent.removeDiscoveryListener(this);
+        discoveryAgent.stopDiscovery();
+    }
 
     private class GraphicsView extends View {
         private String TAG = "Random Stuff";
@@ -190,42 +255,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             return super.onTouchEvent(event);
         }
 
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        float x = event.values[1], y = event.values[0];
-        stableX = stableX * 0.8f + x * 0.2f;
-        stableY = stableY * 0.8f + y * 0.2f;
-        gv.x = stableX;
-        gv.y = stableY;
-        gv.postInvalidate();
-        if (robotActive) {
-            float heading = (float) Math.atan2(x, y);
-            float velocity = (float) Math.sqrt(x * x + y * y);
-            //this.robot.drive(heading, velocity);
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        //not used
-    }
-
-    private void startDiscovery() {
-        Log.i(TAG, "Starting discovery...");
-        try {
-            discoveryAgent.addDiscoveryListener(this);
-            discoveryAgent.startDiscovery(this);
-        } catch (DiscoveryException e) {
-            Log.e("APCSASphero", "Could not start discovery. Reason: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    private void stopDiscovery() {
-        discoveryAgent.removeDiscoveryListener(this);
-        discoveryAgent.stopDiscovery();
     }
 
 }
