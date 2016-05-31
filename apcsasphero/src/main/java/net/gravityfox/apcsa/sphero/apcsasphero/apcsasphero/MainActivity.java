@@ -10,8 +10,11 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
+
 import com.orbotix.ConvenienceRobot;
 import com.orbotix.Ollie;
 import com.orbotix.common.*;
@@ -20,8 +23,6 @@ import com.orbotix.le.RobotLE;
 
 import java.util.List;
 
-import static android.R.attr.layout_height;
-import static android.R.attr.layout_width;
 import static android.R.attr.type;
 
 public class MainActivity extends Activity implements SensorEventListener, DiscoveryAgentEventListener, RobotChangedStateListener {
@@ -36,6 +37,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private GraphicsView gv;
     private boolean robotActive = false;
     private float stableX = 0, stableY = 0;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -104,18 +106,25 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         float initialX, initialY;
         private float centerX = 0;
         private float centerY = 0;
-        private int radius = 70;
+        private int radius = 100;
         private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         float x = 0;
         float y = 0;
+        private WindowManager wm;
+        private Display display;
+        private Point size = new Point();
+        private int screenWidth = 300;
+        private int screenHeight = 300;
         Bitmap btn_Left;
         Bitmap btn_Right;
         Bitmap ball;
 
         public GraphicsView(Context context) {
             super(context);
-            btn_Left = BitmapFactory.decodeResource(getResources(), R.drawable.btn_Left);
-            btn_Right = BitmapFactory.decodeResource(getResources(), R.drawable.btn_Right);
+            wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+            display = wm.getDefaultDisplay();
+            btn_Left = BitmapFactory.decodeResource(getResources(), R.drawable.btn_left);
+            btn_Right = BitmapFactory.decodeResource(getResources(), R.drawable.btn_right);
             ball = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ball), radius, radius, true);
         }
 
@@ -124,6 +133,9 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             super.onSizeChanged(w, h, oldw, oldh);
             centerX = w / 2;
             centerY = h / 2;
+            display.getSize(size);
+            screenWidth = size.x;
+            screenHeight = size.y;
         }
 
         @Override
@@ -132,17 +144,15 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(Color.WHITE);
             canvas.drawPaint(paint);
-            paint.setColor(RED);
 
-            //canvas.drawCircle(centerX + (x * 50), centerY + (y * 50), radius, paint);
             canvas.drawBitmap(ball, centerX + (x * 50), centerY + (y * 50), paint);
-            canvas.drawBitmap(btn_Left, radius, layout_height/2, paint);
-            canvas.drawBitmap(btn_Right, layout_width - radius, layout_height/2, paint);
+            canvas.drawBitmap(btn_Left, radius, y/2, paint);
+            canvas.drawBitmap(btn_Right, x - radius, y/2, paint);
             
             
         }
 
-        public boolean onTouchEvent(MotionEvent event) {
+/*        public boolean onTouchEvent(MotionEvent event) {
             //mGestureDetector.onTouchEvent(event);
 
             int action = event.getActionMasked();
@@ -194,7 +204,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             }
 
             return super.onTouchEvent(event);
-        }
+        }*/
 
     }
 
