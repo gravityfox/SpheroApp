@@ -3,11 +3,7 @@ package net.gravityfox.apcsa.sphero.apcsasphero.apcsasphero;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
+import android.graphics.*;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -49,6 +45,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         SM.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
         discoveryAgent = DiscoveryAgentLE.getInstance();
+        discoveryAgent.addRobotStateListener(this);
         Log.i(TAG, "Started.");
     }
 
@@ -78,7 +75,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
     @Override
     public void handleRobotChangedState(Robot robot, RobotChangedStateNotificationType robotChangedStateNotificationType) {
-        Log.v(TAG, "Robot Changed State: " + robot.toString());
+        Log.v(TAG, "Robot Changed State: " + robotChangedStateNotificationType);
         switch (robotChangedStateNotificationType) {
             case Online:
                 stopDiscovery();
@@ -115,7 +112,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         public GraphicsView(Context context) {
             super(context);
             button = BitmapFactory.decodeResource(getResources(), R.drawable.button);
-            ball = Bitmap.createScaledBitmap(ball, 70, 70, true);
+            ball = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ball), 70, 70, true);
         }
 
         @Override
@@ -134,8 +131,8 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             paint.setColor(RED);
 
             //canvas.drawCircle(centerX + (x * 50), centerY + (y * 50), radius, paint);
-            canvas.drawBitmap(ball,centerX + (x * 50), centerY + (y * 50),paint);
-            canvas.drawBitmap(button,50,50,paint);
+            canvas.drawBitmap(ball, centerX + (x * 50), centerY + (y * 50), paint);
+            canvas.drawBitmap(button, 50, 50, paint);
         }
 
         public boolean onTouchEvent(MotionEvent event) {
@@ -181,7 +178,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
                     break;
 
                 case MotionEvent.ACTION_CANCEL:
-                    Log.d(TAG,"Action was CANCEL");
+                    Log.d(TAG, "Action was CANCEL");
                     break;
 
                 case MotionEvent.ACTION_OUTSIDE:
@@ -217,7 +214,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private void startDiscovery() {
         try {
             discoveryAgent.addDiscoveryListener(this);
-            discoveryAgent.addRobotStateListener(this);
             discoveryAgent.startDiscovery(this);
         } catch (DiscoveryException e) {
             Log.e("APCSASphero", "Could not start discovery. Reason: " + e.getMessage());
