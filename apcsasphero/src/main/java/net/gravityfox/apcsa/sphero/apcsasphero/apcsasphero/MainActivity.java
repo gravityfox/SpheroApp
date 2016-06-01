@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.*;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Toast;
 import com.orbotix.ConvenienceRobot;
 import com.orbotix.Ollie;
 import com.orbotix.common.*;
@@ -29,11 +31,7 @@ import static android.R.attr.type;
 
 public class MainActivity extends Activity implements SensorEventListener, DiscoveryAgentEventListener, RobotChangedStateListener {
 
-    static final String TAG = "APCSASphero";
-    static final int RED = Color.parseColor("#CD5C5C");
-
-    private SensorManager SM;
-    private Sensor sensor;
+    static final String TAG = "APCSA Sphero";
     private DiscoveryAgent discoveryAgent;
     private ConvenienceRobot robot;
     private GraphicsView gv;
@@ -47,13 +45,13 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "Creating");
         super.onCreate(savedInstanceState);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         gv = new GraphicsView(this);
         setContentView(gv);
-        SM = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        SensorManager SM = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        Sensor sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         SM.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
-
     }
 
     @Override
@@ -63,6 +61,15 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         discoveryAgent = DiscoveryAgentLE.getInstance();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
+            CharSequence text = "Sorry, but your phone does not have a bluetooth adapter.";
+            int duration = Toast.LENGTH_LONG;
+            Context context = getApplicationContext();
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         } else {
             if (bluetoothAdapter.isEnabled()) {
                 bluetoothAvailable = true;
@@ -179,29 +186,22 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     }
 
     private class GraphicsView extends View {
-        private String TAG = "Random Stuff";
-        float initialX, initialY;
+        private int LIGHTGREEN = Color.parseColor("#9fec64");
         private float centerX = 0;
         private float centerY = 0;
-        private int radius = 100;
+        private int radius = 200;
         private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         float x = 0;
         float y = 0;
         private WindowManager wm;
         private Display display;
         private Point size = new Point();
-        private int screenWidth = 300;
-        private int screenHeight = 300;
-        Bitmap btn_Left;
-        Bitmap btn_Right;
         Bitmap ball;
 
         public GraphicsView(Context context) {
             super(context);
             wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
             display = wm.getDefaultDisplay();
-            btn_Left = BitmapFactory.decodeResource(getResources(), R.drawable.btn_left);
-            btn_Right = BitmapFactory.decodeResource(getResources(), R.drawable.btn_right);
             ball = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ball), radius, radius, true);
         }
 
@@ -211,77 +211,17 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             centerX = w / 2;
             centerY = h / 2;
             display.getSize(size);
-            screenWidth = size.x;
-            screenHeight = size.y;
         }
 
         @Override
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
             paint.setStyle(Paint.Style.FILL);
-            paint.setColor(Color.WHITE);
+            paint.setColor(LIGHTGREEN);
             canvas.drawPaint(paint);
 
             canvas.drawBitmap(ball, centerX + (x * 50), centerY + (y * 50), paint);
-            canvas.drawBitmap(btn_Left, radius + 20, screenHeight / 2, paint);
-            canvas.drawBitmap(btn_Right, screenWidth - radius - 20, screenHeight / 2, paint);
-
-
         }
-
-/*        public boolean onTouchEvent(MotionEvent event) {
-            //mGestureDetector.onTouchEvent(event);
-
-            int action = event.getActionMasked();
-
-            switch (action) {
-
-                case MotionEvent.ACTION_DOWN:
-                    initialX = event.getX();
-                    initialY = event.getY();
-
-                    Log.d(TAG, "Action was DOWN");
-                    break;
-
-                case MotionEvent.ACTION_MOVE:
-                    Log.d(TAG, "Action was MOVE");
-                    break;
-
-                case MotionEvent.ACTION_UP:
-                    float finalX = event.getX();
-                    float finalY = event.getY();
-
-                    Log.d(TAG, "Action was UP");
-
-                    if (initialX < finalX) {
-                        Log.d(TAG, "Left to Right swipe performed");
-                    }
-
-                    if (initialX > finalX) {
-                        Log.d(TAG, "Right to Left swipe performed");
-                    }
-
-                    if (initialY < finalY) {
-                        Log.d(TAG, "Up to Down swipe performed");
-                    }
-
-                    if (initialY > finalY) {
-                        Log.d(TAG, "Down to Up swipe performed");
-                    }
-
-                    break;
-
-                case MotionEvent.ACTION_CANCEL:
-                    Log.d(TAG, "Action was CANCEL");
-                    break;
-
-                case MotionEvent.ACTION_OUTSIDE:
-                    Log.d(TAG, "Movement occurred outside bounds of current screen element");
-                    break;
-            }
-
-            return super.onTouchEvent(event);
-        }*/
 
     }
 
