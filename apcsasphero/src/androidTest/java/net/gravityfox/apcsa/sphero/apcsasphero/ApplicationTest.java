@@ -1,4 +1,4 @@
-package net.gravityfox.apcsa.sphero.apcsasphero.apcsasphero;
+package net.gravityfox.apcsa.sphero.apcsasphero;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
