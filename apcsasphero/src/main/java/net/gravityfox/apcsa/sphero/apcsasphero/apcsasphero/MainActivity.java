@@ -39,6 +39,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private GraphicsView gv;
     private boolean robotActive = false;
     private boolean bluetoothAvailable = false;
+    private boolean hasPermission = false;
     private float stableX = 0, stableY = 0;
 
 
@@ -65,10 +66,13 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         } else {
             if (bluetoothAdapter.isEnabled()) {
                 bluetoothAvailable = true;
-                if (checkCallingOrSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
             } else {
             }
+        }
+        if (checkCallingOrSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
+        } else {
+            hasPermission = true;
         }
     }
 
@@ -78,6 +82,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         Log.i(TAG, "Resuming");
         super.onResume();
         discoveryAgent.addRobotStateListener(this);
+        if (hasPermission && bluetoothAvailable) startDiscovery();
     }
 
     @Override
@@ -97,6 +102,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            hasPermission = true;
             if (bluetoothAvailable)
                 startDiscovery();
         }
