@@ -16,6 +16,9 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+import com.flowpowered.math.TrigMath;
+import com.flowpowered.math.imaginary.Quaternionf;
+import com.flowpowered.math.vector.Vector3f;
 import com.orbotix.ConvenienceRobot;
 import com.orbotix.Ollie;
 import com.orbotix.common.*;
@@ -37,6 +40,10 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private boolean hasPermission = false;
     private boolean shouldDiscover = false;
     private float stableX = 0, stableY = 0;
+    private float phoneAngle;
+
+    private Sensor accelerometer;
+    private Sensor rotation;
 
 
     @Override
@@ -47,9 +54,11 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         gv = new GraphicsView(this);
         setContentView(gv);
-        SensorManager SM = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        Sensor sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        SM.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
+        SensorManager sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        accelerometer = sm.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        rotation = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
+        sm.registerListener(this, rotation, SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
@@ -144,21 +153,26 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        float x = event.values[1], y = event.values[0];
-        stableX = stableX * 0.8f + x * 0.2f;
-        stableY = stableY * 0.8f + y * 0.2f;
-        gv.x = stableX;
-        gv.y = stableY;
-        gv.postInvalidate();
-        if (robotActive) {
-            float heading = (float) (Math.atan2(stableX, -stableY));
-            if (heading < 0.0) {
-                heading += 2.0 * Math.PI;
+        if (event.sensor == accelerometer) {
+            float x = event.values[1], y = event.values[0];
+            stableX = stableX * 0.8f + x * 0.2f;
+            stableY = stableY * 0.8f + y * 0.2f;
+            gv.x = stableX;
+            gv.y = stableY;
+            gv.postInvalidate();
+            if (robotActive) {
+                float heading = (float) (TrigMath.atan2(stableY, stableX));
+                heading += phoneAngle;
+                heading = Util.wrapAngle(heading);
+                heading *= (180.0 / Math.PI);
+                float velocity = (float) (Math.sqrt(stableX * stableX + stableY * stableY) * 0.05);
+                if (velocity > 1) velocity = 1;
+                this.robot.drive(heading, velocity);
             }
-            heading *= (180.0 / Math.PI);
-            float velocity = (float) (Math.sqrt(stableX * stableX + stableY * stableY) * 0.05);
-            if (velocity > 1) velocity = 1;
-            this.robot.drive(heading, velocity);
+        } else if (event.sensor == rotation) {
+            Quaternionf quat = Util.quatfFromArray(event.values);
+            Vector3f pointVector = quat.rotate(0, 1, 0);
+            phoneAngle = (float) TrigMath.atan2(pointVector.getY(), pointVector.getX());
         }
     }
 
