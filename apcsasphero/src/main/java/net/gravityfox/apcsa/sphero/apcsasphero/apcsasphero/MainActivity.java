@@ -30,8 +30,6 @@ import static android.R.attr.type;
 public class MainActivity extends Activity implements SensorEventListener, DiscoveryAgentEventListener, RobotChangedStateListener {
 
     static final String TAG = "APCSA Sphero";
-
-
     private DiscoveryAgent discoveryAgent;
     private ConvenienceRobot robot;
     private GraphicsView gv;
@@ -51,7 +49,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         SensorManager SM = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         Sensor sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         SM.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
-
     }
 
     @Override
@@ -64,7 +61,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
            CharSequence text = "Sorry, but your phone does not have a bluetooth adapter.";
             int duration = Toast.LENGTH_LONG;
             Context context = getApplicationContext();
-
             Toast toast = Toast.makeText(context, text, duration);
             toast.show();
             Intent intent = new Intent(Intent.ACTION_MAIN);
