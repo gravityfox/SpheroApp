@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.*;
@@ -17,6 +18,8 @@ import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Toast;
+
 import com.orbotix.ConvenienceRobot;
 import com.orbotix.Ollie;
 import com.orbotix.common.*;
@@ -62,6 +65,16 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         discoveryAgent = DiscoveryAgentLE.getInstance();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
+            CharSequence text = "Sorry, but your phone does not have a bluetooth adapter.";
+            int duration = Toast.LENGTH_LONG;
+            Context context = getApplicationContext();
+
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         } else {
             if (bluetoothAdapter.isEnabled()) {
                 bluetoothAvailable = true;
