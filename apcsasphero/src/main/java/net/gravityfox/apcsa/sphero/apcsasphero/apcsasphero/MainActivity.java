@@ -38,6 +38,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private boolean robotActive = false;
     private boolean bluetoothAvailable = false;
     private boolean hasPermission = false;
+    private boolean shouldDiscover = false;
     private float stableX = 0, stableY = 0;
 
 
@@ -61,7 +62,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         discoveryAgent = DiscoveryAgentLE.getInstance();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
-            CharSequence text = "Sorry, but your phone does not have a bluetooth adapter.";
+            String text = "Sorry, but your phone does not have a bluetooth adapter.";
             int duration = Toast.LENGTH_LONG;
             Context context = getApplicationContext();
             Toast toast = Toast.makeText(context, text, duration);
@@ -89,6 +90,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         Log.i(TAG, "Resuming");
         super.onResume();
         discoveryAgent.addRobotStateListener(this);
+        shouldDiscover = true;
         if (hasPermission && bluetoothAvailable) startDiscovery();
     }
 
@@ -96,6 +98,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     protected void onPause() {
         Log.i(TAG, "Pausing");
         super.onPause();
+        shouldDiscover = false;
         if (discoveryAgent != null) {
             discoveryAgent.removeRobotStateListener(this);
             for (Robot r : discoveryAgent.getConnectedRobots()) {
@@ -133,7 +136,8 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
                 break;
             case Disconnected:
                 this.robotActive = false;
-//                startDiscovery();
+                if (shouldDiscover)
+                    startDiscovery();
                 break;
             default:
                 Log.v(TAG, "Not handling state change notification: " + type);
