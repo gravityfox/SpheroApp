@@ -50,6 +50,11 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         SensorManager SM = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         Sensor sensor = SM.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         SM.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
+        String text = "Touch the back of your phone to the USB port on the Ollie until it lights up, in order to connect the devices. ";
+        int duration = Toast.LENGTH_LONG;
+        Context context = getApplicationContext();
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
     }
 
     @Override
