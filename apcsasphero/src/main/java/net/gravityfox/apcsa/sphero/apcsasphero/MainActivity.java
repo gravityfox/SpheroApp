@@ -60,12 +60,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         rotation = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
         sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
         sm.registerListener(this, rotation, SensorManager.SENSOR_DELAY_GAME);
-
-        String text = "Touch the back of your phone to the USB port on the Ollie until it lights up, in order to connect the devices. ";
-        int duration = Toast.LENGTH_LONG;
-        Context context = getApplicationContext();
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
     }
 
     @Override
@@ -104,7 +98,14 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         super.onResume();
         discoveryAgent.addRobotStateListener(this);
         shouldDiscover = true;
-        if (hasPermission && bluetoothAvailable) startDiscovery();
+        if (hasPermission && bluetoothAvailable) {
+            startDiscovery();
+            String text = "Touch the back of your phone to the USB port on the Ollie until it lights up, in order to connect the devices. ";
+            int duration = Toast.LENGTH_LONG;
+            Context context = getApplicationContext();
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+        }
     }
 
     @Override
