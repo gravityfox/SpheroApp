@@ -2,13 +2,11 @@ package net.gravityfox.apcsa.sphero.apcsasphero;
 
 import android.content.Context;
 import android.graphics.*;
-import android.nfc.Tag;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 /**
  * Created by Fox on 6/1/2016.
@@ -25,11 +23,13 @@ public class GraphicsView extends View {
     private WindowManager wm;
     private Display display;
     private Point size = new Point();
+    private MainActivity mainActivityInstance;
     Bitmap ball;
     Bitmap cal;
 
-    public GraphicsView(Context context) {
+    public GraphicsView(MainActivity context) {
         super(context);
+        mainActivityInstance = context;
         wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         display = wm.getDefaultDisplay();
         ball = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ball), radius, radius, true);
@@ -51,22 +51,19 @@ public class GraphicsView extends View {
         paint.setColor(LIGHTGREEN);
         canvas.drawPaint(paint);
         canvas.drawBitmap(ball, centerX + (x * 50), centerY + (y * 50), paint);
-        canvas.drawBitmap(cal,0,0,paint);
+        canvas.drawBitmap(cal, 0, 0, paint);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        // MotionEvent reports input details from the touch screen
-        // and other input controls. In this case, you are only
-        // interested in events where the touch position changed.
-
-        float x = e.getX();
-        float y = e.getY();
-
-        if (x<=100&&y<=100&&x>=0&&y>=0){
-            Log.i("HI","button pressed");
+        if(e.getAction() == MotionEvent.ACTION_DOWN){
+            mainActivityInstance.callibrating(true);
+            return true;
+        } else if (e.getAction() == MotionEvent.ACTION_UP) {
+            mainActivityInstance.callibrating(false);
+            return true;
         }
-        return true;
+        return false;
     }
 
 }
