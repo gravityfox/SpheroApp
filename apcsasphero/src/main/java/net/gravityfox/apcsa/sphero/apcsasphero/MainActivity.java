@@ -12,6 +12,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
@@ -41,7 +42,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private boolean shouldDiscover = false;
     private float stableX = 0, stableY = 0;
     private float phoneAngle;
-
     private Sensor accelerometer;
     private Sensor rotation;
 
@@ -50,7 +50,9 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "Creating");
         super.onCreate(savedInstanceState);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN );
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         gv = new GraphicsView(this);
         setContentView(gv);
@@ -60,12 +62,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         rotation = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
         sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
         sm.registerListener(this, rotation, SensorManager.SENSOR_DELAY_GAME);
-
-        String text = "Touch the back of your phone to the USB port on the Ollie until it lights up, in order to connect the devices. ";
-        int duration = Toast.LENGTH_LONG;
-        Context context = getApplicationContext();
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
     }
 
     @Override
@@ -75,20 +71,12 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         discoveryAgent = DiscoveryAgentLE.getInstance();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
-            String text = "Sorry, but your phone does not have a bluetooth adapter.";
-            int duration = Toast.LENGTH_LONG;
-            Context context = getApplicationContext();
-            Toast toast = Toast.makeText(context, text, duration);
-            toast.show();
-            Intent intent = new Intent(Intent.ACTION_MAIN);
-            intent.addCategory(Intent.CATEGORY_HOME);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        } else {
-            if (bluetoothAdapter.isEnabled()) {
-                bluetoothAvailable = true;
-            } else {
-            }
+            Snackbar snackBT = Snackbar.make(gv,"Sorry, but your phone does not have a Bluetooth adapter.",Snackbar.LENGTH_INDEFINITE);
+            snackBT.show();
+        } else if (bluetoothAdapter.isEnabled()) {
+            bluetoothAvailable = true;
+            Snackbar snackRD = Snackbar.make(gv,"Please touch the back of your device to the Ollie's power port.",Snackbar.LENGTH_INDEFINITE);
+            snackRD.show();
         }
         if (checkCallingOrSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
@@ -96,7 +84,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             hasPermission = true;
         }
     }
-
 
     @Override
     protected void onResume() {
@@ -133,6 +120,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
     @Override
     public void handleRobotsAvailable(List<Robot> list) {
+        //not used
     }
 
     @Override
