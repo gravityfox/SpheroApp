@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -55,7 +54,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "Creating");
         super.onCreate(savedInstanceState);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN );
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
@@ -75,11 +74,11 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         discoveryAgent = DiscoveryAgentLE.getInstance();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
-            Snackbar snackBT = Snackbar.make(gv,"Sorry, but your phone does not have a Bluetooth adapter.",Snackbar.LENGTH_INDEFINITE);
+            Snackbar snackBT = Snackbar.make(gv, "Sorry, but your phone does not have a Bluetooth adapter.", Snackbar.LENGTH_INDEFINITE);
             snackBT.show();
         } else if (bluetoothAdapter.isEnabled()) {
             bluetoothAvailable = true;
-            Snackbar snackRD = Snackbar.make(gv,"Please touch the back of your device to the Ollie's power port.",Snackbar.LENGTH_INDEFINITE);
+            Snackbar snackRD = Snackbar.make(gv, "Please touch the back of your device to the Ollie's power port.", Snackbar.LENGTH_INDEFINITE);
             snackRD.show();
         }
         if (checkCallingOrSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -165,8 +164,8 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor == accelerometer) {
             float x = event.values[1], y = event.values[0];
-            stableX = stableX * 0.9f + x * 0.1f;
-            stableY = stableY * 0.9f + y * 0.1f;
+            stableX = stableX * 0.95f + x * 0.05f;
+            stableY = stableY * 0.95f + y * 0.05f;
             gv.x = stableX;
             gv.y = stableY;
             gv.postInvalidate();
@@ -217,11 +216,11 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
                 this.robot.stop();
                 this.robot.calibrating(true);
             } else {
-                this.phoneAngleOffset = -this.phoneAngle;
                 this.robot.calibrating(false);
             }
-        } else if (!value) {
-            this.phoneAngleOffset = -this.phoneAngle;
+        }
+        if (!value) {
+            this.phoneAngleOffset = -this.phoneAngle + ((float) Math.PI / 2);
         }
     }
 
