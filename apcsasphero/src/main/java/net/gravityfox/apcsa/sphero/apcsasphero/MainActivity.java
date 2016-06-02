@@ -16,6 +16,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 import com.flowpowered.math.TrigMath;
 import com.flowpowered.math.imaginary.Quaternionf;
@@ -33,15 +34,19 @@ import static android.R.attr.type;
 public class MainActivity extends Activity implements SensorEventListener, DiscoveryAgentEventListener, RobotChangedStateListener {
 
     static final String TAG = "APCSA Sphero";
+
     private DiscoveryAgent discoveryAgent;
     private ConvenienceRobot robot;
     private GraphicsView gv;
+    private SensorManager sm;
     private boolean robotActive = false;
     private boolean bluetoothAvailable = false;
     private boolean hasPermission = false;
     private boolean shouldDiscover = false;
+    private boolean isCalibrating = false;
     private float stableX = 0, stableY = 0;
-    private float phoneAngle;
+    private float phoneAngle = 0;
+    private float phoneAngleOffset = 0;
     private Sensor accelerometer;
     private Sensor rotation;
 
@@ -51,17 +56,16 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         Log.i(TAG, "Creating");
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN );
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         gv = new GraphicsView(this);
         setContentView(gv);
 
-        SensorManager sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sm.getDefaultSensor(Sensor.TYPE_GRAVITY);
         rotation = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-        sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
-        sm.registerListener(this, rotation, SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
@@ -89,15 +93,25 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     protected void onResume() {
         Log.i(TAG, "Resuming");
         super.onResume();
+        sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
+        sm.registerListener(this, rotation, SensorManager.SENSOR_DELAY_GAME);
         discoveryAgent.addRobotStateListener(this);
         shouldDiscover = true;
-        if (hasPermission && bluetoothAvailable) startDiscovery();
+        if (hasPermission && bluetoothAvailable) {
+            startDiscovery();
+            String text = "Touch the back of your phone to the USB port on the Ollie until it lights up, in order to connect the devices. ";
+            int duration = Toast.LENGTH_LONG;
+            Context context = getApplicationContext();
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+        }
     }
 
     @Override
     protected void onPause() {
         Log.i(TAG, "Pausing");
         super.onPause();
+        sm.unregisterListener(this);
         shouldDiscover = false;
         if (discoveryAgent != null) {
             discoveryAgent.removeRobotStateListener(this);
@@ -105,6 +119,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
                 r.sleep();
             }
         }
+
         stopDiscovery();
     }
 
@@ -150,14 +165,14 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor == accelerometer) {
             float x = event.values[1], y = event.values[0];
-            stableX = stableX * 0.8f + x * 0.2f;
-            stableY = stableY * 0.8f + y * 0.2f;
+            stableX = stableX * 0.9f + x * 0.1f;
+            stableY = stableY * 0.9f + y * 0.1f;
             gv.x = stableX;
             gv.y = stableY;
             gv.postInvalidate();
-            if (robotActive) {
+            if (robotActive && !isCalibrating) {
                 float heading = (float) (TrigMath.atan2(stableY, stableX));
-                heading += phoneAngle;
+                heading -= phoneAngle + phoneAngleOffset;
                 heading = Util.wrapAngle(heading);
                 heading *= (180.0 / Math.PI);
                 float velocity = (float) (Math.sqrt(stableX * stableX + stableY * stableY) * 0.05);
@@ -193,6 +208,21 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         Log.i(TAG, "Stopping discovery...");
         discoveryAgent.removeDiscoveryListener(this);
         discoveryAgent.stopDiscovery();
+    }
+
+    public void callibrating(boolean value) {
+        isCalibrating = value;
+        if (robotActive) {
+            if (value) {
+                this.robot.stop();
+                this.robot.calibrating(true);
+            } else {
+                this.phoneAngleOffset = -this.phoneAngle;
+                this.robot.calibrating(false);
+            }
+        } else if (!value) {
+            this.phoneAngleOffset = -this.phoneAngle;
+        }
     }
 
 }
