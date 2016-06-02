@@ -79,8 +79,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             snackBT.show();
         } else if (bluetoothAdapter.isEnabled()) {
             bluetoothAvailable = true;
-            Snackbar snackRD = Snackbar.make(gv,"Please touch the back of your device to the Ollie's power port.",Snackbar.LENGTH_INDEFINITE);
-            snackRD.show();
         }
         if (checkCallingOrSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
@@ -99,11 +97,8 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         shouldDiscover = true;
         if (hasPermission && bluetoothAvailable) {
             startDiscovery();
-            String text = "Touch the back of your phone to the USB port on the Ollie until it lights up, in order to connect the devices. ";
-            int duration = Toast.LENGTH_LONG;
-            Context context = getApplicationContext();
-            Toast toast = Toast.makeText(context, text, duration);
-            toast.show();
+            Snackbar snackRD = Snackbar.make(gv,"Please place the back of your device against the Ollie's power port until it lights up.",Snackbar.LENGTH_LONG);
+            snackRD.show();
         }
     }
 
