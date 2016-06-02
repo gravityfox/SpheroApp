@@ -11,7 +11,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 /**
- * Created by Fox on 6/1/2016.
+ * Created by Seth on 5/16/2016.
  * Project: APCSASphero
  */
 public class GraphicsView extends View {
@@ -56,14 +56,11 @@ public class GraphicsView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        // MotionEvent reports input details from the touch screen
-        // and other input controls. In this case, you are only
-        // interested in events where the touch position changed.
-
         float x = e.getX();
         float y = e.getY();
+        float max = 250;
 
-        if (x<=100&&y<=100&&x>=0&&y>=0){
+        if (x<=max&&y<=max&&x>=0&&y>=0){
             Log.i("HI","button pressed");
         }
         return true;
