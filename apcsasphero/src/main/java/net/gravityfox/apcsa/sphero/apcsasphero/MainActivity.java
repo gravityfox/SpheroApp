@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -12,12 +11,11 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.Toast;
 import com.flowpowered.math.TrigMath;
 import com.flowpowered.math.imaginary.Quaternionf;
 import com.flowpowered.math.vector.Vector3f;
@@ -26,19 +24,19 @@ import com.orbotix.Ollie;
 import com.orbotix.common.*;
 import com.orbotix.le.DiscoveryAgentLE;
 import com.orbotix.le.RobotLE;
-
 import java.util.List;
-
 import static android.R.attr.type;
 
 public class MainActivity extends Activity implements SensorEventListener, DiscoveryAgentEventListener, RobotChangedStateListener {
 
     static final String TAG = "APCSA Sphero";
-
     private DiscoveryAgent discoveryAgent;
     private ConvenienceRobot robot;
     private GraphicsView gv;
     private SensorManager sm;
+    private Sensor accelerometer;
+    private Sensor rotation;
+    private Snackbar snackRD;
     private boolean robotActive = false;
     private boolean bluetoothAvailable = false;
     private boolean hasPermission = false;
@@ -47,34 +45,36 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private float stableX = 0, stableY = 0;
     private float phoneAngle = 0;
     private float phoneAngleOffset = 0;
-    private Sensor accelerometer;
-    private Sensor rotation;
 
-
-    @Override
+    @Override//@Seth Cassellius
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "Creating");
         super.onCreate(savedInstanceState);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN );
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        //@StackOverflow
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        //Not @StackOverflow
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         gv = new GraphicsView(this);
         setContentView(gv);
-
         sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sm.getDefaultSensor(Sensor.TYPE_GRAVITY);
         rotation = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
     }
 
-    @Override
+    @Override//@Michael liu
     protected void onStart() {
         Log.i(TAG, "Starting");
         super.onStart();
         discoveryAgent = DiscoveryAgentLE.getInstance();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
+            //Snackbar @Seth Cassellius
             Snackbar snackBT = Snackbar.make(gv,"Sorry, but your phone does not have a Bluetooth adapter.",Snackbar.LENGTH_INDEFINITE);
             snackBT.show();
         } else if (bluetoothAdapter.isEnabled()) {
@@ -87,7 +87,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         }
     }
 
-    @Override
+    @Override//@Half and Half
     protected void onResume() {
         Log.i(TAG, "Resuming");
         super.onResume();
@@ -97,12 +97,10 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         shouldDiscover = true;
         if (hasPermission && bluetoothAvailable) {
             startDiscovery();
-            Snackbar snackRD = Snackbar.make(gv,"Please place the back of your device against the Ollie's power port until it lights up.",Snackbar.LENGTH_LONG);
-            snackRD.show();
         }
     }
 
-    @Override
+    @Override //@Mostly Michael Liu from here down
     protected void onPause() {
         Log.i(TAG, "Pausing");
         super.onPause();
@@ -119,7 +117,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             hasPermission = true;
@@ -154,7 +152,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
                 Log.v(TAG, "Not handling state change notification: " + type);
         }
     }
-
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -197,12 +194,17 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             Log.e(TAG, "Could not start discovery. Reason: " + e.getMessage());
             e.printStackTrace();
         }
+        //SnackRD @Seth Cassellius
+        snackRD = Snackbar.make(gv,"Please place the back of your device against the Ollie's power port until it lights up.",Snackbar.LENGTH_INDEFINITE);
+        snackRD.show();
     }
 
+    //Method @Seth Cassellius
     private void stopDiscovery() {
         Log.i(TAG, "Stopping discovery...");
         discoveryAgent.removeDiscoveryListener(this);
         discoveryAgent.stopDiscovery();
+        snackRD.dismiss();
     }
 
     public void callibrating(boolean value) {

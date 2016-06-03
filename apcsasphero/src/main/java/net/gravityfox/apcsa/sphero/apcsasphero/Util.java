@@ -5,6 +5,7 @@ import com.flowpowered.math.imaginary.Quaternionf;
 
 /**
  * Created by Fox on 6/1/2016.
+ * All @Michael Liu
  * Project: APCSASphero
  */
 public class Util {
