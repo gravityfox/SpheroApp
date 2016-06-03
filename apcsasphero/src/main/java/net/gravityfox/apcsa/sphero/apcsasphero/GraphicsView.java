@@ -2,6 +2,7 @@ package net.gravityfox.apcsa.sphero.apcsasphero;
 
 import android.content.Context;
 import android.graphics.*;
+import android.support.design.widget.Snackbar;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.view.WindowManager;
 
 /**
  * Created by Seth on 5/16/2016.
+ * All @Seth Cassellius
  * Project: APCSASphero
  */
 public class GraphicsView extends View {
@@ -23,6 +25,7 @@ public class GraphicsView extends View {
     private Display display;
     private Point size = new Point();
     private MainActivity mainActivityInstance;
+    private Snackbar snackCal;
     Bitmap ball;
     Bitmap cal;
     Bitmap crosshair;
@@ -43,6 +46,7 @@ public class GraphicsView extends View {
         centerX = w / 2 - (radius / 2);
         centerY = h / 2 - (radius / 2);
         display.getSize(size);
+        snackCal = Snackbar.make(getRootView(),"Hold the button for a few seconds while placing your device horizontal & flat on top of the Ollie.",Snackbar.LENGTH_INDEFINITE);
     }
 
     @Override
@@ -58,10 +62,14 @@ public class GraphicsView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        if (e.getAction() == MotionEvent.ACTION_DOWN) {
+        float x = e.getX();
+        float y = e.getY();
+        if (x<=250&&y<=250&&x>=0&&y>=0&&e.getAction() == MotionEvent.ACTION_DOWN) {
+            snackCal.show();
             mainActivityInstance.callibrating(true);
             return true;
-        } else if (e.getAction() == MotionEvent.ACTION_UP) {
+        } else if (x<=250&&y<=250&&x>=0&&y>=0&&e.getAction() == MotionEvent.ACTION_UP) {
+            snackCal.dismiss();
             mainActivityInstance.callibrating(false);
             return true;
         }

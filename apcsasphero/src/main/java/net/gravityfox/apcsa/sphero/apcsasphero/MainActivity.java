@@ -11,6 +11,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -32,7 +33,6 @@ import static android.R.attr.type;
 public class MainActivity extends Activity implements SensorEventListener, DiscoveryAgentEventListener, RobotChangedStateListener {
 
     static final String TAG = "APCSA Sphero";
-
     private DiscoveryAgent discoveryAgent;
     private ConvenienceRobot robot;
     private GraphicsView gv;
@@ -49,19 +49,21 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private float phoneAngle = 0;
     private float phoneAngleOffset = 0;
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "Creating");
         super.onCreate(savedInstanceState);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         gv = new GraphicsView(this);
         setContentView(gv);
-
         sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sm.getDefaultSensor(Sensor.TYPE_GRAVITY);
         rotation = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
@@ -96,7 +98,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         shouldDiscover = true;
         if (hasPermission && bluetoothAvailable) {
             startDiscovery();
-
         }
     }
 
@@ -117,7 +118,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             hasPermission = true;
@@ -152,7 +153,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
                 Log.v(TAG, "Not handling state change notification: " + type);
         }
     }
-
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -197,6 +197,8 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             Log.e(TAG, "Could not start discovery. Reason: " + e.getMessage());
             e.printStackTrace();
         }
+        snackRD = Snackbar.make(gv, "Please place the back of your device against the Ollie's power port until it lights up.", Snackbar.LENGTH_INDEFINITE);
+        snackRD.show();
     }
 
     private void stopDiscovery() {

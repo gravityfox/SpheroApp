@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Ollie Gyroscope</string>
-    <string name="bad_mike">Michael Please Stop</string>
+    <string name="app_name">Ollie Gyroscope Controller</string>
     <string name="action_settings">Settings</string>
 </resources>
