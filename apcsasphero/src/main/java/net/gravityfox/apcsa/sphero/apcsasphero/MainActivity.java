@@ -16,7 +16,6 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Toast;
 import com.flowpowered.math.TrigMath;
 import com.flowpowered.math.imaginary.Quaternionf;
 import com.flowpowered.math.vector.Vector3f;
@@ -38,6 +37,9 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private ConvenienceRobot robot;
     private GraphicsView gv;
     private SensorManager sm;
+    private Sensor accelerometer;
+    private Sensor rotation;
+    private Snackbar snackRD;
     private boolean robotActive = false;
     private boolean bluetoothAvailable = false;
     private boolean hasPermission = false;
@@ -46,8 +48,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
     private float stableX = 0, stableY = 0;
     private float phoneAngle = 0;
     private float phoneAngleOffset = 0;
-    private Sensor accelerometer;
-    private Sensor rotation;
 
 
     @Override
@@ -78,8 +78,6 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             snackBT.show();
         } else if (bluetoothAdapter.isEnabled()) {
             bluetoothAvailable = true;
-            Snackbar snackRD = Snackbar.make(gv, "Please touch the back of your device to the Ollie's power port.", Snackbar.LENGTH_INDEFINITE);
-            snackRD.show();
         }
         if (checkCallingOrSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
@@ -98,11 +96,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
         shouldDiscover = true;
         if (hasPermission && bluetoothAvailable) {
             startDiscovery();
-            String text = "Touch the back of your phone to the USB port on the Ollie until it lights up, in order to connect the devices. ";
-            int duration = Toast.LENGTH_LONG;
-            Context context = getApplicationContext();
-            Toast toast = Toast.makeText(context, text, duration);
-            toast.show();
+
         }
     }
 
@@ -174,7 +168,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
                 heading -= phoneAngle + phoneAngleOffset;
                 heading = Util.wrapAngle(heading);
                 heading *= (180.0 / Math.PI);
-                float velocity = (float) (Math.sqrt(stableX * stableX + stableY * stableY) * 0.05);
+                float velocity = (float) (Math.sqrt(stableX * stableX + stableY * stableY) * 0.1);
                 if (velocity > 1) velocity = 1;
                 this.robot.drive(heading, velocity);
             }
@@ -197,6 +191,8 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             discoveryAgent.addDiscoveryListener(this);
             discoveryAgent.startDiscovery(this);
             Log.i(TAG, "Started discovery!");
+            snackRD = Snackbar.make(gv, "Please place the back of your device against the Ollie's power port until it lights up.", Snackbar.LENGTH_INDEFINITE);
+            snackRD.show();
         } catch (DiscoveryException e) {
             Log.e(TAG, "Could not start discovery. Reason: " + e.getMessage());
             e.printStackTrace();
@@ -205,6 +201,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
 
     private void stopDiscovery() {
         Log.i(TAG, "Stopping discovery...");
+        if (snackRD != null) snackRD.dismiss();
         discoveryAgent.removeDiscoveryListener(this);
         discoveryAgent.stopDiscovery();
     }
@@ -220,7 +217,7 @@ public class MainActivity extends Activity implements SensorEventListener, Disco
             }
         }
         if (!value) {
-            this.phoneAngleOffset = -this.phoneAngle + ((float) Math.PI / 2);
+            this.phoneAngleOffset = -this.phoneAngle - ((float) Math.PI / 2);
         }
     }
 
