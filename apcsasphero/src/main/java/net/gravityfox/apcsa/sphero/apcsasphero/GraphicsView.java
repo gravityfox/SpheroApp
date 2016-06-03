@@ -62,11 +62,13 @@ public class GraphicsView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        if (e.getAction() == MotionEvent.ACTION_DOWN) {
+        float x = e.getX();
+        float y = e.getY();
+        if (x<=250&&y<=250&&x>=0&&y>=0&&e.getAction() == MotionEvent.ACTION_DOWN) {
             snackCal.show();
             mainActivityInstance.callibrating(true);
             return true;
-        } else if (e.getAction() == MotionEvent.ACTION_UP) {
+        } else if (x<=250&&y<=250&&x>=0&&y>=0&&e.getAction() == MotionEvent.ACTION_UP) {
             snackCal.dismiss();
             mainActivityInstance.callibrating(false);
             return true;
